@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MF Proposal Generator — Branded</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --card:#1f2937; --border:#374151; --text:#e5e7eb;
+      --muted:#94a3b8; --accent:#22c55e; --accent2:#60a5fa; --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui;background:linear-gradient(180deg,#0b1222,#0f172a);color:var(--text)}
+    header{padding:18px 24px;border-bottom:1px solid var(--border);background:var(--panel)}
+    h1{margin:0;font-size:20px}
+    .container{max-width:1200px;margin:18px auto;padding:0 16px}
+    .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+    .span-8{grid-column:1/span 8} .span-4{grid-column:9/span 4} .span-12{grid-column:1/-1}
+    @media(max-width:1000px){.span-8,.span-4,.span-12{grid-column:1/-1}}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    input,select{width:100%;background:#0b1222;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}
+    .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media(max-width:900px){.form-grid{grid-template-columns:repeat(1,1fr)}}
+    button{background:var(--accent);color:#052e1a;border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    button.secondary{background:var(--accent2);color:#0c2a4b}
+    button.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .hint{font-size:12px;color:var(--muted)}
+    .footer{color:var(--muted);font-size:12px;margin-top:12px}
+    .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#0b1222;border:1px solid var(--border);font-size:12px;color:var(--muted);margin-right:6px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Branded MF Proposal Generator</h1>
+  <div class="hint">Fill 7 questions → Generate PPT</div>
+</header>
+<div class="container">
+  <div class="grid">
+    <div class="card span-8">
+      <h2 style="margin-top:0">Investor Inputs</h2>
+      <div class="form-grid">
+        <div><label>Investor Name</label><input id="investorName" placeholder="e.g., Shruti Suman"/></div>
+        <div><label>Prepared by (Distributor)</label><input id="distributorName" placeholder="e.g., Adarsh Shukla"/></div>
+        <div><label>SIP amount (₹/month)</label><input id="sip" type="number" min="100" step="100" placeholder="30000"/></div>
+        <div><label>Investment Tenure</label>
+          <select id="tenure">
+            <option value="LT1">< 1 year</option>
+            <option value="1to3">1–3 years</option>
+            <option value="3to5" selected>3–5 years</option>
+            <option value="5to10">5–10 years</option>
+            <option value="GT10">10+ years</option>
+          </select></div>
+        <div><label>Risk appetite</label>
+          <select id="riskAppetite">
+            <option>Very low</option><option>Low</option><option selected>Moderate</option><option>High</option><option>Very high</option>
+          </select></div>
+        <div><label>Risk tolerance</label>
+          <select id="riskTolerance"><option>Conservative</option><option selected>Balanced</option><option>Aggressive</option></select></div>
+        <div><label>Emergency fund available?</label>
+          <select id="emergencyFund"><option selected>Yes (≥6 months)</option><option>Partly (3–6 months)</option><option>No</option></select></div>
+        <div><label>Income-tax bracket</label>
+          <select id="taxBracket"><option>0–5%</option><option>10%</option><option>20%</option><option selected>30%+</option></select></div>
+        <div><label>Liquidity needs (1–3 yrs)</label>
+          <select id="liquidityNeeds"><option selected>No</option><option>Yes: <6 months</option><option>Yes: 6–12 months</option><option>Yes: 12–36 months</option></select></div>
+        <div><label>Lock‑in acceptable?</label>
+          <select id="lockinOk"><option>No</option><option>Yes</option></select></div>
+        <div><label>Exit‑load tolerance (%)</label><input id="exitLoadTolerance" type="number" step="0.5" min="0" max="3" value="1"/></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="generateBtn">Generate PPT</button>
+        <button class="secondary" id="resetBtn">Reset</button>
+        <span class="hint">A download link will appear below once ready.</span>
+      </div>
+      <div id="result" class="footer"></div>
+    </div>
+    <div class="card span-4">
+      <h2 style="margin-top:0">Notes & Compliance</h2>
+      <p class="hint">SEBI scheme categories (true‑to‑label) and Riskometer must align with client risk. Exit‑load cap is 3% (Sep‑2025); scheme grids apply.</p>
+      <div><span class="pill">Sharpe</span><span class="pill">Beta</span><span class="pill">Std. Dev.</span><span class="pill">P/E</span><span class="pill">AUM</span><span class="pill">Exit‑load</span></div>
+    </div>
+    <div class="card span-12">
+      <div class="hint">Branding: add your logo to <code>static/logo.png</code> and set colors in CSS.</div>
+    </div>
+  </div>
+</div>
+<script>
+async function postData(url = '', data = {}){
+  const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  if(!res.ok){throw new Error('Server error');}
+  const blob = await res.blob();
+  const dl = URL.createObjectURL(blob);
+  return dl;
+}
+
+document.getElementById('generateBtn').addEventListener('click', async ()=>{
+  const payload = {
+    investorName: document.getElementById('investorName').value || 'Shruti Suman',
+    distributorName: document.getElementById('distributorName').value || 'Adarsh Shukla',
+    sip: Number(document.getElementById('sip').value || 30000),
+    tenure: document.getElementById('tenure').value,
+    riskAppetite: document.getElementById('riskAppetite').value,
+    riskTolerance: document.getElementById('riskTolerance').value,
+    emergencyFund: document.getElementById('emergencyFund').value,
+    taxBracket: document.getElementById('taxBracket').value,
+    liquidityNeeds: document.getElementById('liquidityNeeds').value,
+    lockinOk: document.getElementById('lockinOk').value === 'Yes',
+    exitLoadTolerance: Number(document.getElementById('exitLoadTolerance').value || 1)
+  };
+  const resultEl = document.getElementById('result');
+  resultEl.textContent = 'Generating deck…';
+  try{
+    const link = await postData('/generate', payload);
+    resultEl.innerHTML = `<a href="${link}" download>Download PPT</a>`;
+  }catch(e){
+    resultEl.textContent = 'Failed to generate. Please check server logs.';
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('input,select').forEach(el=>{
+    if(el.id==='investorName') el.value='';
+    if(el.id==='distributorName') el.value='';
+    if(el.id==='sip') el.value='30000';
+    if(el.id==='tenure') el.value='3to5';
+    if(el.id==='riskAppetite') el.value='Moderate';
+    if(el.id==='riskTolerance') el.value='Balanced';
+    if(el.id==='emergencyFund') el.value='Yes (≥6 months)';
+    if(el.id==='taxBracket') el.value='30%+';
+    if(el.id==='liquidityNeeds') el.value='No';
+    if(el.id==='lockinOk') el.value='No';
+    if(el.id==='exitLoadTolerance') el.value='1';
+  });
+  document.getElementById('result').textContent='';
+});
+</script>
+</body>
+</html>
