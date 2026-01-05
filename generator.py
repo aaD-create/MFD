@@ -8,7 +8,7 @@ from datetime import datetime
 import os
 
 # ---------------------------
-# Demo scheme database (replace with live factsheet metrics)
+# Demo scheme database (replace with live factsheet metrics if needed)
 # ---------------------------
 SCHEMES = [
     # Equity — Parag Parikh Flexi Cap
@@ -126,7 +126,7 @@ TENURE_LABELS = {"LT1":"< 1 year","1to3":"1–3 years","3to5":"3–5 years","5to
 
 
 # ---------------------------
-# Helper functions
+# Helper functions (no changes needed by you)
 # ---------------------------
 def _get_scheme(name_substring: str):
     q = name_substring.lower()
@@ -182,7 +182,7 @@ HEADER_SHADE = RGBColor(230, 230, 230)  # light gray
 
 
 # ---------------------------
-# Main builder
+# Main builder (this is the only function your app calls)
 # ---------------------------
 def build_proposal_ppt(buf, inputs):
     # --- derive asset mix ---
@@ -313,5 +313,71 @@ def build_proposal_ppt(buf, inputs):
         rtf = rb.text_frame; rtf.clear()
         rp = rtf.paragraphs[0]; rp.text = sch.get('notes','Fund rationale')
         for r in rp.runs:
+            r.font.bold = True; r.font.italic = True; r.font.size = Pt(12); r.font.name = 'Calibri'
+
+        # Fixed table area
+        left, top, width, height = Inches(0.5), Inches(1.8), Inches(9.0), Inches(5.0)
+        metrics = sch["metrics"]
+        rows = len(metrics) + 2  # + weight row
+        tbl = slide.shapes.add_table(rows, 2, left, top, width, height).table
+        # Header
+        tbl.cell(0,0).text = "Metric"; tbl.cell(0,1).text = "Value"
+        for c in (tbl.cell(0,0), tbl.cell(0,1)):
+            c.fill.solid(); c.fill.fore_color.rgb = HEADER_SHADE
+            _set_tf_font(c.text_frame, size_pt=12, bold=True)
+        tbl.columns[0].width = Inches(3.5); tbl.columns[1].width = Inches(5.5)
+
+        # First row: portfolio weight
+        r_idx = 1
+        tbl.cell(r_idx,0).text = "Portfolio weight"; tbl.cell(r_idx,1).text = f"{wt}%"
+        for p in tbl.cell(r_idx,1).text_frame.paragraphs:
+            p.alignment = PP_ALIGN.RIGHT
+        r_idx += 1
+
+        # Remaining metric rows (keep numeric values right-aligned)
+        for k, v in metrics.items():
+            tbl.cell(r_idx,0).text = k
+            cv = tbl.cell(r_idx,1); cv.text = v if v is not None else '—'
+            for p in cv.text_frame.paragraphs:
+                p.alignment = PP_ALIGN.RIGHT
+            r_idx += 1
+
+        # Table font Calibri 12pt
+        for row in tbl.rows:
+            for cell in row.cells:
+                _set_tf_font(cell.text_frame, size_pt=12)
+
+        # Footer accent bar
+        foot = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(6.9), Inches(10), Inches(0.6))
+        foot.fill.solid(); foot.fill.fore_color.rgb = ACCENT_GREEN; foot.line.fill.background()
+        fb = slide.shapes.add_textbox(Inches(0.4), Inches(6.92), Inches(9.2), Inches(0.5))
+        fbtf = fb.text_frame; fbtf.clear()
+        fp = fbtf.paragraphs[0]
+        fp.text = "Data as of YYYY‑MM; Sources: AMC factsheets/AMFI"
+        fp.font.size = Pt(10); fp.font.name = 'Calibri'
+
+    # Final slide — Key Metrics & Compliance (fixed box, 12pt)
+    s7 = prs.slides.add_slide(prs.slide_layouts[1])
+    s7.shapes.title.text = "Key Metrics & Compliance Notes"
+    _set_tf_font(s7.shapes.title.text_frame, size_pt=20)
+    box = s7.shapes.add_textbox(Inches(0.5), Inches(1.5), Inches(9.0), Inches(5.5))
+    tf7 = box.text_frame; tf7.clear()
+    bullets = [
+        "Sharpe = (Return − Risk‑free) / Std. dev.; higher ⇒ better risk‑adjusted performance.",
+        "Beta = sensitivity to market (1.0 = market); lower ⇒ lower volatility.",
+        "Std. dev. = volatility of returns; lower ⇒ more stability.",
+        "Sortino focuses on downside volatility only.",
+        "Rolling returns show consistency across overlapping periods.",
+        "Riskometer: SEBI/AMFI label (Low → Very High).",
+        "Exit‑load: Scheme‑specific grids apply; plan redemptions to avoid charges.",
+        "Disclaimer: Mutual fund investments are subject to market risks. Past performance may or may not be sustained."
+    ]
+    p = tf7.paragraphs[0]; p.text = "• " + bullets[0]
+    for b in bullets[1:]:
+        q = tf7.add_paragraph(); q.text = "• " + b
+    _set_tf_font(tf7, size_pt=12)
+
+    prs.save(buf)
+
 
 
