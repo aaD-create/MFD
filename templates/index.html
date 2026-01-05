@@ -1,12 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MF Proposal Generator — Branded</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link://fonts.googleapis.com
+  https://fonts.gstatic.com
+  https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap
   <style>
     :root{
       --bg:#0f172a; --panel:#111827; --card:#1f2937; --border:#374151; --text:#e5e7eb;
@@ -32,6 +33,9 @@
     .footer{color:var(--muted);font-size:12px;margin-top:12px}
     .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#0b1222;border:1px solid var(--border);font-size:12px;color:var(--muted);margin-right:6px}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    /* Optional: compact radio row labels */
+    .row label{margin-bottom:0;color:var(--text);font-size:13px}
+    .row input[type="radio"]{width:auto;margin-right:6px}
   </style>
 </head>
 <body>
@@ -70,7 +74,22 @@
         <div><label>Lock‑in acceptable?</label>
           <select id="lockinOk"><option>No</option><option>Yes</option></select></div>
         <div><label>Exit‑load tolerance (%)</label><input id="exitLoadTolerance" type="number" step="0.5" min="0" max="3" value="1"/></div>
+
+        <!-- NEW: Bajaj AMC inclusion (required, default = auto) -->
+        <div style="grid-column:1/-1">
+          <label>Include Bajaj AMC fund (required)</label>
+          <div class="row" role="radiogroup" aria-label="Include Bajaj AMC fund">
+            <label><input type="radio" name="bajajFundChoice" value="auto" checked> Auto (choose based on risk/tenure)</label>
+            <label><input type="radio" name="bajajFundChoice" value="maf"> Bajaj Finserv Multi Asset Allocation Fund (Hybrid)</label>
+            <label><input type="radio" name="bajajFundChoice" value="flexi"> Bajaj Finserv Flexi Cap Fund (Equity)</label>
+          </div>
+          <div class="hint">
+            At least one Bajaj AMC fund will be included in every proposal. Exit‑load and Riskometer are scheme‑specific; see scheme SID/KIM/factsheet.
+          </div>
+        </div>
+        <!-- END NEW -->
       </div>
+
       <div class="row" style="margin-top:10px">
         <button id="generateBtn">Generate PPT</button>
         <button class="secondary" id="resetBtn">Reset</button>
@@ -78,11 +97,13 @@
       </div>
       <div id="result" class="footer"></div>
     </div>
+
     <div class="card span-4">
       <h2 style="margin-top:0">Notes & Compliance</h2>
       <p class="hint">SEBI scheme categories (true‑to‑label) and Riskometer must align with client risk. Exit‑load cap is 3% (Sep‑2025); scheme grids apply.</p>
       <div><span class="pill">Sharpe</span><span class="pill">Beta</span><span class="pill">Std. Dev.</span><span class="pill">P/E</span><span class="pill">AUM</span><span class="pill">Exit‑load</span></div>
     </div>
+
     <div class="card span-12">
       <div class="hint">Branding: add your logo to <code>static/logo.png</code> and set colors in CSS.</div>
     </div>
@@ -109,13 +130,15 @@ document.getElementById('generateBtn').addEventListener('click', async ()=>{
     taxBracket: document.getElementById('taxBracket').value,
     liquidityNeeds: document.getElementById('liquidityNeeds').value,
     lockinOk: document.getElementById('lockinOk').value === 'Yes',
-    exitLoadTolerance: Number(document.getElementById('exitLoadTolerance').value || 1)
+    exitLoadTolerance: Number(document.getElementById('exitLoadTolerance').value || 1),
+    // NEW: include Bajaj fund choice in payload
+    bajajFundChoice: (document.querySelector('input[name="bajajFundChoice"]:checked')?.value || 'auto')
   };
   const resultEl = document.getElementById('result');
   resultEl.textContent = 'Generating deck…';
   try{
     const link = await postData('/generate', payload);
-    resultEl.innerHTML = `<a href="${link}" download>Download PPT</a>`;
+    resultEl.innerHTML = `${link}Download PPT</a>`;
   }catch(e){
     resultEl.textContent = 'Failed to generate. Please check server logs.';
   }
@@ -135,8 +158,13 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
     if(el.id==='lockinOk') el.value='No';
     if(el.id==='exitLoadTolerance') el.value='1';
   });
+  // NEW: reset Bajaj fund choice to auto
+  const autoRadio = document.querySelector('input[name="bajajFundChoice"][value="auto"]');
+  if(autoRadio) autoRadio.checked = true;
+
   document.getElementById('result').textContent='';
 });
 </script>
 </body>
 </html>
+
