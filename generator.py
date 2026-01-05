@@ -7,9 +7,7 @@ from pptx.dml.color import RGBColor
 from datetime import datetime
 import os
 
-# ---------------------------
-# Demo scheme database (replace with live factsheet metrics if needed)
-# ---------------------------
+
 SCHEMES = [
     # Equity — Parag Parikh Flexi Cap
     {
